@@ -1,38 +1,34 @@
-#include "tasks.h"
+#include "async.h"
 #include <stdio.h>
 
-TASK(f, int i);
-TASK(g);
-
-TASK(f, int i) {
+ASYNC(generator, int max) {
+  static int i;
   TASK_BEGIN();
 
-  while (i < 5) {
-    printf("in f(): %d\n", i);
-    TASK_YIELD();
-  }
+  for (i = 0; i < max; i++)
+    YIELD(&i);
 
-  TASK_YIELD_UNTIL(i == 8);
-
-  printf("task done\n");
   TASK_END();
 }
 
-TASK(g) {
+ASYNC(wait, int delay) {
+  static int answer = 42;
   TASK_BEGIN();
-  printf("in g() at time %d\n", millis());
-  TASK_YIELD_FOR(1000);
-  printf("in g() at time %d\n", millis());
-  TASK_END();
+  YIELD_FOR(delay);
+  TASK_END(&answer);
 }
 
 int main() {
 
-  AWAIT(g);
-  for (int j = 0; j < 10; j++)
-    RUN(f, j);
+  void *item;
+  int sum = 0;
 
-  printf("main done\n");
+  while (item = AWAIT(generator, 10)->result, item)
+    sum += *(int *)item;
+  printf("sum of 0 to 9 is %d\n", sum);
+
+  int ans = *(int *)BLOCK(wait, 1000)->result;
+  printf("answer is %d\n", ans);
 
   return 0;
 }
