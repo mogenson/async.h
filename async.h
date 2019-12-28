@@ -13,11 +13,12 @@ https://ideone.com/UJRVh3
 
 /* Task types */
 typedef enum { TASK_RESET, TASK_RUN } task_control_t;
+typedef enum { TASK_DONE, TASK_RUNNING } task_status_t;
 typedef struct {
-  enum { TASK_DONE, TASK_RUNNING } status; // execution status
-  void *address; // label address to resume at next run
-  void *result;  // return value
-} task_status_t;
+  task_status_t status; // execution status
+  void *address;        // label address to resume at next run
+  void *result;         // return value
+} task_t;
 
 // IDEA: add a return type to a task control struct
 // then we can return stuff like a generator
@@ -64,7 +65,7 @@ static inline bool timeout_expired(timeout_t *timeout) {
  *         task_status_t bar(task_control_t task_control, int i, int j)
  */
 #define ASYNC(task, ...)                                                       \
-  task_status_t *task(task_control_t task_control __VA_OPT__(, ) __VA_ARGS__)
+  task_t *task(task_control_t task_control __VA_OPT__(, ) __VA_ARGS__)
 
 /* Runs a function by passing the TASK_RUN argument. Function will start
  * execution at the beginning or previously yielded resume address.
@@ -79,11 +80,11 @@ static inline bool timeout_expired(timeout_t *timeout) {
 /* drive task to finish */
 #define BLOCK(task, ...)                                                       \
   ({                                                                           \
-    task_status_t *task_status;                                                \
-    while (task_status = task(TASK_RUN __VA_OPT__(, ) __VA_ARGS__),            \
-           task_status->status != TASK_DONE)                                   \
+    task_t *t;                                                                 \
+    while (t = task(TASK_RUN __VA_OPT__(, ) __VA_ARGS__),                      \
+           t->status != TASK_DONE)                                             \
       continue;                                                                \
-    task_status;                                                               \
+    t;                                                                         \
   })
 
 /* Helper macros to generate a unique GCC label from a label string and line
@@ -96,19 +97,19 @@ static inline bool timeout_expired(timeout_t *timeout) {
  * task_control command. This macro must be included at the beginning of a task.
  */
 #define TASK_BEGIN(...)                                                        \
-  static task_status_t task_status = {                                         \
+  static task_t task = {                                                       \
       .status = TASK_RUNNING, .address = NULL, .result = NULL};                \
   do {                                                                         \
     switch (task_control) {                                                    \
     case TASK_RUN:                                                             \
-      if (task_status.address)                                                 \
-        goto *task_status.address;                                             \
+      if (task.address)                                                        \
+        goto *task.address;                                                    \
       break;                                                                   \
     case TASK_RESET:                                                           \
-      task_status.status = TASK_RUNNING;                                       \
-      task_status.address = NULL;                                              \
-      task_status.result = (NULL __VA_OPT__(, ) __VA_ARGS__);                  \
-      return &task_status;                                                     \
+      task.status = TASK_RUNNING;                                              \
+      task.address = NULL;                                                     \
+      task.result = (NULL __VA_OPT__(, ) __VA_ARGS__);                         \
+      return &task;                                                            \
       break;                                                                   \
     }                                                                          \
   } while (0)
@@ -118,10 +119,10 @@ static inline bool timeout_expired(timeout_t *timeout) {
  */
 #define TASK_END(...)                                                          \
   do {                                                                         \
-    task_status.status = TASK_DONE;                                            \
-    task_status.address = &&LABEL(TASK, __LINE__);                             \
-    task_status.result = (NULL __VA_OPT__(, ) __VA_ARGS__);                    \
-    LABEL(TASK, __LINE__) : return &task_status;                               \
+    task.status = TASK_DONE;                                                   \
+    task.address = &&LABEL(TASK, __LINE__);                                    \
+    task.result = (NULL __VA_OPT__(, ) __VA_ARGS__);                           \
+    LABEL(TASK, __LINE__) : return &task;                                      \
   } while (0)
 
 /* Sets the address to the current line and exits the task with the
@@ -132,9 +133,9 @@ static inline bool timeout_expired(timeout_t *timeout) {
  */
 #define YIELD(...)                                                             \
   do {                                                                         \
-    task_status.address = &&LABEL(TASK, __LINE__);                             \
-    task_status.result = (NULL __VA_OPT__(, ) __VA_ARGS__);                    \
-    return &task_status;                                                       \
+    task.address = &&LABEL(TASK, __LINE__);                                    \
+    task.result = (NULL __VA_OPT__(, ) __VA_ARGS__);                           \
+    return &task;                                                              \
     LABEL(TASK, __LINE__) :;                                                   \
   } while (0)
 
