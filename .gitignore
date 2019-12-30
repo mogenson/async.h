@@ -6,3 +6,4 @@ examples/arguments
 examples/factorial
 examples/generator
 examples/nested
+examples/delay
