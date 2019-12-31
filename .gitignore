@@ -8,3 +8,4 @@ examples/generator
 examples/nested
 examples/delay
 examples/spsc
+examples/password
