@@ -1,7 +1,6 @@
 main.c
 a.out
 .gdb_history
-examples/echo
 examples/arguments
 examples/factorial
 examples/generator

@@ -1,9 +1,8 @@
 CFLAGS = -Wall -ggdb
 CC = gcc
-SRCS = echo arguments generator factorial nested delay spsc password
+SRCS = arguments generator factorial nested delay spsc password
 
 all: $(SRCS)
-echo: echo.c
 arguments: arguments.c
 generator: generator.c
 factorial: factorial.c
