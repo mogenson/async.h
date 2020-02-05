@@ -2,13 +2,13 @@
 #include <stdio.h>
 
 ASYNC(count) {
+  static int i;
   TASK_BEGIN();
 
-  printf("1\n");
-  YIELD_FOR(1000);
-  printf("2\n");
-  YIELD_FOR(1000);
-  printf("3\n");
+  for (i = 1; i < 5; i++) {
+    YIELD_FOR(1);
+    printf("%d\n", i);
+  }
 
   TASK_END();
 }
@@ -16,8 +16,8 @@ ASYNC(count) {
 ASYNC(delay) {
   TASK_BEGIN();
 
-  printf("waiting for 3 seconds\n");
-  YIELD_FOR(3000);
+  printf("waiting for 5 seconds\n");
+  YIELD_FOR(5);
   printf("done waiting\n");
 
   TASK_END();

@@ -1,6 +1,4 @@
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <stddef.h> // where NULL is defined
 
 #ifndef __GNUC__
 #error async.h requires GCC compiler
@@ -17,38 +15,6 @@ typedef struct {
   void *address;        // label address to resume at next run
   void *result;         // pointer to return result
 } task_t;
-
-/* Timer types */
-typedef struct {
-  uint32_t start;
-  uint32_t duration;
-} timeout_t;
-
-#ifdef __unix__
-#include <sys/time.h>
-#include <unistd.h>
-static inline uint32_t millis(void) {
-  struct timeval tv;
-  struct timezone tz;
-  gettimeofday(&tv, &tz);
-  return tv.tv_sec * 1000 + tv.tv_usec / 1000;
-}
-#else
-#warning "You must define your own millis() function"
-#endif
-
-static inline void timeout_set(timeout_t *timeout, uint32_t milliseconds) {
-  if (!timeout)
-    return;
-  timeout->start = millis();
-  timeout->duration = milliseconds;
-}
-
-static inline bool timeout_expired(timeout_t *timeout) {
-  if (!timeout)
-    return true; // default to timeout
-  return (millis() - timeout->start) >= timeout->duration;
-}
 
 /* Generates a function definition/declaration for a task name and optional
  * list of arguments. Assings a return type of task_t* and mandatory function
@@ -178,17 +144,33 @@ static inline bool timeout_expired(timeout_t *timeout) {
     YIELD(__VA_ARGS__);                                                        \
   } while (!(condition))
 
-/* Yield task execution for a number of milliseconds. Yields until a timeout
- * timer has expired. An optional return result pointer can be provided as a
- * second argument.
+/* Yield task execution for a duration. Yields until the number of ticks
+ * elapsed is greater than duration. Requires TICK_FUNC() and TICK_TYPE to be
+ * defined. An optional return result pointer can be provided as a second
+ * argument.
  *
  * Examples:
- *     YIELD_FOR(1000) to delay for 1 second
- *     YIELD_FOR(1000, &var) where var is a static variable
+ *     YIELD_FOR(100) to delay for 100 ticks
+ *     YIELD_FOR(100, &var) where var is a static variable
  */
-#define YIELD_FOR(milliseconds, ...)                                           \
+#define YIELD_FOR(duration, ...)                                               \
   do {                                                                         \
-    static timeout_t timeout;                                                  \
-    timeout_set(&timeout, milliseconds);                                       \
-    YIELD_UNTIL(timeout_expired(&timeout) __VA_OPT__(, ) __VA_ARGS__);         \
+    static TICK_TYPE LABEL(start, __LINE__) = 0;                               \
+    LABEL(start, __LINE__) = TICK_FUNC();                                      \
+    YIELD_UNTIL((TICK_FUNC() - LABEL(start, __LINE__) >= duration)             \
+                    __VA_OPT__(, ) __VA_ARGS__);                               \
   } while (0)
+
+/* The YIELD_FOR() macro above requires a reference clock in the form of an
+ * incremental counter for time comparison. Define TICK_FUNC() as the calling
+ * signature for this function and TICK_TYPE as the return type. TICK_TYPE can
+ * be any type that supports comparison operators. Rollovers for unsigned
+ * integers are handled. Below is a sample implementation for UNIX systems.
+ */
+#if !defined(TICK_FUNC) && !defined(TICK_TYPE) && defined(__unix__)
+#include <time.h>
+#define TICK_FUNC() time(NULL) // get seconds since January 1, 1970
+#define TICK_TYPE time_t       // time_t is an integer
+#else
+#warning "You must define a TICK_FUNC() function and TICK_TYPE return type"
+#endif

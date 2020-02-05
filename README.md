@@ -4,8 +4,6 @@
 
 This project contains a single header file: `async.h` to be included in a C/C++ project. It enables cooperative multitasking via the `async`/`await` keywords popularized by modern languages. A function declared using the `async` macro is a task (coroutine) that can yield before the end of the function. This can be used to wait on a long-running job (such as blocking IO), return a chunk of an incremental calculation (like a generator), or simplify a state machine into a linear progression (like a message parser). An `async` function can be `awaited`, meaning it will resume running from the previous yield point and will exit at the next yield point. There is no scheduler and no separate stacks. Tasks cannot be preemptively interrupted and local variables must be declared `static` to retain their values.
 
-The `async.h` header contains some inline timer functions needed by the `YIELD_FOR()` macro. These can be used for generic non-blocking timeout calculations. Non-unix platforms (such as embedded microcontrollers) will need to supply a function to count the number of milliseconds since boot.
-
 These macros use a couple of interesting C preprocessor and C language features, including [the comma operator](https://www.gnu.org/software/gnu-c-manual/gnu-c-manual.html#The-Comma-Operator), [varadic macros](https://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html), [statement expressions](https://gcc.gnu.org/onlinedocs/gcc/Statement-Exprs.html), and [labels as values](https://gcc.gnu.org/onlinedocs/gcc/Labels-as-Values.html). Some of these features are exclusive to GCC, so this library will not work with other compilers.
 
 ## API
@@ -110,15 +108,25 @@ These macros use a couple of interesting C preprocessor and C language features,
 ```
 
 ```
-/* Yield task execution for a number of milliseconds. Yields until a timeout
- * timer has expired. An optional return result pointer can be provided as a
- * second argument.
+/* Yield task execution for a duration. Yields until the number of ticks
+ * elapsed is greater than duration. Requires TICK_FUNC() and TICK_TYPE to be
+ * defined. An optional return result pointer can be provided as a second
+ * argument.
  *
  * Examples:
- *     YIELD_FOR(1000) to delay for 1 second
- *     YIELD_FOR(1000, &var) where var is a static variable
+ *     YIELD_FOR(100) to delay for 100 ticks
+ *     YIELD_FOR(100, &var) where var is a static variable
  */
-#define YIELD_FOR(milliseconds, ...)
+#define YIELD_FOR(duration, ...)
+
+/* The YIELD_FOR() macro above requires a reference clock in the form of an
+ * incremental counter for time comparison. Define TICK_FUNC() as the calling
+ * signature for this function and TICK_TYPE as the return type. TICK_TYPE can
+ * be any type that supports comparison operators. Rollovers for unsigned
+ * integers are handled. Below is a sample implementation for UNIX systems.
+ */
+#define TICK_FUNC() time(NULL) // get seconds since January 1, 1970
+#define TICK_TYPE time_t       // time_t is an integer
 ```
 
 ## Examples
@@ -143,7 +151,7 @@ Shows that tasks can be nested and an `async` function can be called from anothe
 
 ### [delay.c](https://github.com/mogenson/async.h/blob/master/examples/delay.c)
 
-Shows the use of the `YIELD_FOR()` macro to wait for a number of milliseconds while allowing other tasks to run.
+Shows the use of the `YIELD_FOR()` macro to wait for a number of seconds while allowing other tasks to run.
 
 ### [spsc.c](https://github.com/mogenson/async.h/blob/master/examples/spsc.c)
 
