@@ -1,11 +1,10 @@
 #include <stddef.h> // where NULL is defined
 
+#pragma once
+
 #ifndef __GNUC__
 #error async.h requires GCC compiler
 #endif
-
-#pragma once
-#pragma GCC diagnostic ignored "-Wunused-value"
 
 /* Task types */
 typedef enum { TASK_RESET, TASK_RUN } task_control_t;
@@ -90,7 +89,10 @@ typedef struct {
     case TASK_RESET:                                                           \
       task.status = TASK_RUNNING;                                              \
       task.address = NULL;                                                     \
+      _Pragma("GCC diagnostic push");                                          \
+      _Pragma("GCC diagnostic ignored \"-Wunused-value\"");                    \
       task.result = (NULL __VA_OPT__(, ) __VA_ARGS__);                         \
+      _Pragma("GCC diagnostic pop");                                           \
       return &task;                                                            \
       break;                                                                   \
     }                                                                          \
@@ -108,7 +110,10 @@ typedef struct {
   do {                                                                         \
     task.status = TASK_DONE;                                                   \
     task.address = &&LABEL(TASK, __LINE__);                                    \
+    _Pragma("GCC diagnostic push");                                            \
+    _Pragma("GCC diagnostic ignored \"-Wunused-value\"");                      \
     task.result = (NULL __VA_OPT__(, ) __VA_ARGS__);                           \
+    _Pragma("GCC diagnostic pop");                                             \
     LABEL(TASK, __LINE__) : return &task;                                      \
   } while (0)
 
@@ -126,7 +131,10 @@ typedef struct {
 #define YIELD(...)                                                             \
   do {                                                                         \
     task.address = &&LABEL(TASK, __LINE__);                                    \
+    _Pragma("GCC diagnostic push");                                            \
+    _Pragma("GCC diagnostic ignored \"-Wunused-value\"");                      \
     task.result = (NULL __VA_OPT__(, ) __VA_ARGS__);                           \
+    _Pragma("GCC diagnostic pop");                                             \
     return &task;                                                              \
     LABEL(TASK, __LINE__) :;                                                   \
   } while (0)
