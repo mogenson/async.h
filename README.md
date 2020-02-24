@@ -34,8 +34,8 @@ These macros use a couple of interesting C preprocessor and C language features,
 
 ```
 /* Resets a task by passing the TASK_RESET task_control command. Task will start
- * execution at the beginning and yield at the TASK_BEGIN macro. Task may yield
- * a pointer to a return result or else NULL.
+ * execution at the beginning and yield at the BEGIN macro. Task may yield a
+ * pointer to a return result or else NULL.
  *
  * Examples:
  *     RESET(task, arg1, arg2)
@@ -62,10 +62,10 @@ These macros use a couple of interesting C preprocessor and C language features,
  * command.
  *
  * Examples:
- *     TASK_BEGIN()
- *     TASK_BEGIN(&var) where var is a static variable
+ *     BEGIN()
+ *     BEGIN(&var) where var is a static variable
  */
-#define TASK_BEGIN(...)
+#define BEGIN(...)
 ```
 
 ```
@@ -74,10 +74,10 @@ These macros use a couple of interesting C preprocessor and C language features,
  * return result can be provided as an optional argument.
  *
  * Examples:
- *     TASK_END()
- *     TASK_END(&var) where var is a static variable
+ *     END()
+ *     END(&var) where var is a static variable
  */
-#define TASK_END(...)
+#define END(...)
 ```
 
 ```

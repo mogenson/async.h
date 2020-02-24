@@ -4,13 +4,13 @@
 /* define task named generator that takes an argument and returns a result */
 ASYNC(generator, int max) {
   static int i; // returned results must be static
-  TASK_BEGIN();
+  BEGIN();
 
   for (i = 0; i < max; i++) {
     YIELD(&i); // return a pointer to i
   }
 
-  TASK_END(); // TASK_END() return result will be NULL if not provided
+  END(); // END() return result will be NULL if not provided
 }
 
 int main() {

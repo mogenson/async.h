@@ -9,7 +9,7 @@ ASYNC(numeric);
 /* task definitions */
 ASYNC(upper) {
   static char c;
-  TASK_BEGIN();
+  BEGIN();
 
   for (c = 'A'; c <= 'F'; c++) {
     printf("%c", c);
@@ -17,31 +17,31 @@ ASYNC(upper) {
     YIELD();
   }
 
-  TASK_END();
+  END();
 }
 
 ASYNC(lower) {
   static char c;
-  TASK_BEGIN();
+  BEGIN();
 
   for (c = 'a'; c <= 'f'; c++) {
     printf("%c", c);
     YIELD();
   }
 
-  TASK_END();
+  END();
 }
 
 ASYNC(numeric) {
   static int i;
-  TASK_BEGIN();
+  BEGIN();
 
   for (i = 0; i <= 9; i++) {
     printf("%d", i);
     YIELD();
   }
 
-  TASK_END();
+  END();
 }
 
 int main() {

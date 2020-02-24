@@ -37,8 +37,8 @@ typedef struct {
 #define AWAIT(task, ...) task(TASK_RUN __VA_OPT__(, ) __VA_ARGS__)
 
 /* Resets a task by passing the TASK_RESET task_control command. Task will start
- * execution at the beginning and yield at the TASK_BEGIN macro. Task may yield
- * a pointer to a return result or else NULL.
+ * execution at the beginning and yield at the BEGIN macro. Task may yield a
+ * pointer to a return result or else NULL.
  *
  * Examples:
  *     RESET(task, arg1, arg2)
@@ -74,10 +74,10 @@ typedef struct {
  * command.
  *
  * Examples:
- *     TASK_BEGIN()
- *     TASK_BEGIN(&var) where var is a static variable
+ *     BEGIN()
+ *     BEGIN(&var) where var is a static variable
  */
-#define TASK_BEGIN(...)                                                        \
+#define BEGIN(...)                                                             \
   static task_t task = {                                                       \
       .status = TASK_RUNNING, .address = NULL, .result = NULL};                \
   do {                                                                         \
@@ -103,10 +103,10 @@ typedef struct {
  * return result can be provided as an optional argument.
  *
  * Examples:
- *     TASK_END()
- *     TASK_END(&var) where var is a static variable
+ *     END()
+ *     END(&var) where var is a static variable
  */
-#define TASK_END(...)                                                          \
+#define END(...)                                                               \
   do {                                                                         \
     task.status = TASK_DONE;                                                   \
     task.address = &&LABEL(TASK, __LINE__);                                    \

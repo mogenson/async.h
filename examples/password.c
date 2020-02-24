@@ -10,7 +10,7 @@ ASYNC(lock) {
   static int index;
   static char c;
 
-  TASK_BEGIN();
+  BEGIN();
 
   printf("enter password: %s\n", password);
 
@@ -27,7 +27,7 @@ ASYNC(lock) {
 
   printf("password correct\n");
 
-  TASK_END();
+  END();
 }
 
 int main() {

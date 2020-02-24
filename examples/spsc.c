@@ -6,7 +6,7 @@ int *shared_item = NULL;
 ASYNC(producer) {
   static int item;
 
-  TASK_BEGIN();
+  BEGIN();
 
   for (item = 0; item < 10; item++) {
     printf("produce item: %d\n", item);
@@ -14,11 +14,11 @@ ASYNC(producer) {
     YIELD_UNTIL(!shared_item); // wait for item == NULL
   }
 
-  TASK_END();
+  END();
 }
 
 ASYNC(consumer) {
-  TASK_BEGIN();
+  BEGIN();
 
   while (1) {
     YIELD_UNTIL(shared_item); // wait for item != NULL
@@ -26,11 +26,10 @@ ASYNC(consumer) {
     shared_item = NULL; // reset to allow producer to run
   }
 
-  TASK_END();
+  END();
 }
 
 int main() {
-
   while (AWAIT(producer)->status)
     AWAIT(consumer);
 

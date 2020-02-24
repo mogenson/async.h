@@ -3,24 +3,24 @@
 
 ASYNC(count) {
   static int i;
-  TASK_BEGIN();
+  BEGIN();
 
   for (i = 1; i < 5; i++) {
     YIELD_FOR(1);
     printf("%d\n", i);
   }
 
-  TASK_END();
+  END();
 }
 
 ASYNC(delay) {
-  TASK_BEGIN();
+  BEGIN();
 
   printf("waiting for 5 seconds\n");
   YIELD_FOR(5);
   printf("done waiting\n");
 
-  TASK_END();
+  END();
 }
 
 int main() {

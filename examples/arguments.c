@@ -3,18 +3,17 @@
 
 /* define an async task named print that takes two arguments */
 ASYNC(print, char c, int i) {
-  TASK_BEGIN();
+  BEGIN();
 
   while (1) {
     printf("c is '%c' and i is %d\n", c, i); // print arguments
     YIELD();
   }
 
-  TASK_END();
+  END();
 }
 
 int main() {
-
   char c = 'a';
   int i = 0;
 
