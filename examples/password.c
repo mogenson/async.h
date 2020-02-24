@@ -1,22 +1,23 @@
 #include "../async.h"
-#include <fcntl.h>
-#include <stdio.h>
+#include <ncurses.h>
+#include <signal.h>
+#include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 static char *password = "1234";
 
 ASYNC(lock) {
   static int index;
-  static char c;
+  static int c;
 
   BEGIN();
 
-  printf("enter password: %s\n", password);
+  printw("enter password: %s\n", password);
 
   for (index = 0; index < strlen(password); index++) {
     while (1) {
-      YIELD_UNTIL(read(STDIN_FILENO, &c, 1) > 0); // wait until char available
+      YIELD_UNTIL((c = getch(), c != ERR)); // wait until char available
+      addch('*');
       if (c == password[index]) {
         break; // leave while loop, goto next index
       } else {
@@ -25,16 +26,29 @@ ASYNC(lock) {
     }
   }
 
-  printf("password correct\n");
+  printw("\npassword correct");
 
   END();
 }
 
+void ctrlc(int signal) {
+  endwin();
+  exit(0);
+}
+
 int main() {
-  /* make reads from stdin non-blocking */
-  fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL) | O_NONBLOCK);
+  initscr();
+  cbreak();
+  noecho();
+
+  signal(SIGINT, ctrlc);
 
   BLOCK(lock); // run the task until completion
+
+  refresh();
+
+  while (1)
+    continue;
 
   return 0;
 }

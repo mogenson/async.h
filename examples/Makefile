@@ -9,7 +9,7 @@ factorial: factorial.c
 nested: nested.c
 delay: delay.c
 spsc: spsc.c
-password: password.c
+password: password.c -lncurses
 
 clean:
 	$(RM) $(SRCS)
