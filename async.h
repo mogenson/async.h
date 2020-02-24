@@ -179,6 +179,6 @@ typedef struct {
 #include <time.h>
 #define TICK_FUNC() time(NULL) // get seconds since January 1, 1970
 #define TICK_TYPE time_t       // time_t is an integer
-#else
+#elif !defined(TICK_FUNC) || !defined(TICK_TYPE)
 #warning "You must define a TICK_FUNC() function and TICK_TYPE return type"
 #endif
