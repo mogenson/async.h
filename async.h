@@ -109,12 +109,12 @@ typedef struct {
 #define END(...)                                                               \
   do {                                                                         \
     task.status = TASK_DONE;                                                   \
-    task.address = &&LABEL(TASK, __LINE__);                                    \
+    task.address = NULL;                                                       \
     _Pragma("GCC diagnostic push");                                            \
     _Pragma("GCC diagnostic ignored \"-Wunused-value\"");                      \
     task.result = (NULL __VA_OPT__(, ) __VA_ARGS__);                           \
     _Pragma("GCC diagnostic pop");                                             \
-    LABEL(TASK, __LINE__) : return &task;                                      \
+    return &task;                                                              \
   } while (0)
 
 /* Exits the current task with the TASK_RUNNING status after setting the address
